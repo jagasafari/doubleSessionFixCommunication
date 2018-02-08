@@ -5,58 +5,70 @@ open Xunit
 open Swensen.Unquote
 open Connection
 
+let print msg = sprintf "%A" msg
+
 [<Fact>]
 let ``connectionState: crud`` () =
-    let get, updateStreaming, updateTrading = connectionState ()
-    get () =! ((Logout, Logout), (Logout, Logout))
-    updateStreaming Logon
-    get() =! ((Logout, Logout), (Logon, Logout))
-    updateTrading Logon
-    get() =! ((Logon, Logout), (Logon, Logon))
-    updateTrading Logon
-    get() =! ((Logon, Logon), (Logon, Logon))
+    let get, updateStreaming, updateTrading = 
+        connectionState ()
+    get () =! ((Off, Off), (Off, Off))
+    updateStreaming On
+    get() =! ((Off, Off), (On, Off))
+    updateTrading On
+    get() =! ((On, Off), (On, On))
+    updateTrading On
+    get() =! ((On, Off), (On, On))
 
 [<Fact>]
 let ``connectionState: repeated -> logout, logout`` () =
-    let get, updateStreaming, updateTrading = connectionState ()
-    updateStreaming Logout
-    get () =! ((Logout, Logout), (Logout, Logout))
-    updateTrading Logout
-    get () =! ((Logout, Logout), (Logout, Logout))
-    updateStreaming Logout
-    get () =! ((Logout, Logout), (Logout, Logout))
-    updateTrading Logout
-    get () =! ((Logout, Logout), (Logout, Logout))
+    let get, updateStreaming, updateTrading = 
+        connectionState ()
+    updateStreaming Off
+    get () =! ((Off, Off), (Off, Off))
+    updateTrading Off
+    get () =! ((Off, Off), (Off, Off))
+    updateStreaming Off
+    get () =! ((Off, Off), (Off, Off))
+    updateTrading Off
+    get () =! ((Off, Off), (Off, Off))
 
 [<Fact>]
 let ``connectionState: repeated -> logon, logon`` () =
-    let get, updateStreaming, updateTrading = connectionState ()
-    updateStreaming Logon
-    get () =! ((Logout, Logout), (Logon, Logout))
-    updateTrading Logon
-    get () =! ((Logon, Logout), (Logon, Logon))
-    updateTrading Logon
-    get () =! ((Logon, Logon), (Logon, Logon))
-    updateStreaming Logon
-    get () =! ((Logon, Logon), (Logon, Logon))
-    updateTrading Logon
-    get () =! ((Logon, Logon), (Logon, Logon))
+    let get, updateStreaming, updateTrading = 
+        connectionState ()
+    updateStreaming On
+    get () =! ((Off, Off), (On, Off))
+    updateTrading On
+    get () =! ((On, Off), (On, On))
+    updateTrading On
+    get () =! ((On, Off), (On, On))
+    updateStreaming On
+    get () =! ((On, Off), (On, On))
+    updateTrading On
+    get () =! ((On, Off), (On, On))
 
 [<Fact>]
 let ``connectionState: repeated -> logon, logout`` () =
-    let get, updateStreaming, updateTrading = connectionState ()
-    updateStreaming Logon
-    get () =! ((Logout, Logout), (Logon, Logout))
-    updateStreaming Logon
-    get () =! ((Logout, Logout), (Logon, Logout))
-    updateStreaming Logout
-    get () =! ((Logon, Logout), (Logout, Logout))
+    let get, updateStreaming, updateTrading = 
+        connectionState ()
+    updateStreaming On
+    get () =! ((Off, Off), (On, Off))
+    updateStreaming On
+    get () =! ((Off, Off), (On, Off))
+    updateStreaming Off
+    get () =! ((On, Off), (Off, Off))
 
     
 let testResult () =
-    let result = List<_>()
-    let test expected = (result |> Seq.toList) =! expected
-    test, result.Add
+    let result = List<string>()
+    let add msg = msg |> print |> result.Add
+    let test expected = 
+        let r =
+            result 
+            |> Seq.map (fun x -> x.Replace(@"""", ""))
+            |> Seq.toList
+        r =! expected
+    test, add
 
 let reactorTestData =
     [ StartStreaming; StartTrading; StopStreaming; StopTrading ]
@@ -67,53 +79,54 @@ let reactorMock add =
     let startTrading () = add StartTrading
     let stopStreaming () = add StopStreaming
     let stopTrading () = add StopTrading
-    reactor startStreaming startTrading stopStreaming stopTrading   
+    react startStreaming startTrading stopStreaming stopTrading   
 
 [<Theory; MemberData("reactorTestData")>]
 let ``reactor: cases`` msg =
     let test, add = testResult ()
     reactorMock add msg
-    test [msg]
+    test [print msg]
 
 let connectionTestData =
     [
-    ((Logout, Logout), (Logout, Logout)), true, Some StartStreaming
-    ((Logout, Logout), (Logon, Logout)), true, Some StartTrading
-    ((Logout, Logout), (Logout, Logon)), true, Some StopTrading
-    ((Logout, Logout), (Logon, Logon)), false, None
+    ((Off, Off), (Off, Off)), true, Some StartStreaming
+    ((Off, Off), (On, Off)), true, Some StartTrading
+    ((Off, Off), (Off, On)), true, Some StopTrading
+    ((Off, Off), (On, On)), false, None
 
-    ((Logon, Logout), (Logout, Logout)), true, Some StartStreaming
-    ((Logon, Logout), (Logon, Logout)), false, Some StopStreaming
-    ((Logon, Logout), (Logout, Logon)), false, Some StopTrading
-    ((Logon, Logout), (Logon, Logon)), true, None
+    ((On, Off), (Off, Off)), true, Some StartStreaming
+    ((On, Off), (On, Off)), false, Some StopStreaming
+    ((On, Off), (Off, On)), false, Some StopTrading
+    ((On, Off), (On, On)), true, None
 
-    ((Logout, Logon), (Logout, Logout)), true, Some StartStreaming
-    ((Logout, Logon), (Logon, Logout)), false, Some StopStreaming
-    ((Logout, Logon), (Logout, Logon)), false, Some StopTrading
-    ((Logout, Logon), (Logon, Logon)), false, None
+    ((Off, On), (Off, Off)), true, Some StartStreaming
+    ((Off, On), (On, Off)), false, Some StopStreaming
+    ((Off, On), (Off, On)), false, Some StopTrading
+    ((Off, On), (On, On)), false, None
 
-    ((Logon, Logon), (Logout, Logout)), false, Some StartStreaming
-    ((Logon, Logon), (Logon, Logout)), true, Some StopStreaming
-    ((Logon, Logon), (Logout, Logon)), true, Some StopTrading
-    ((Logon, Logon), (Logon, Logon)), true, None
+    ((On, On), (Off, Off)), false, Some StartStreaming
+    ((On, On), (On, Off)), true, Some StopStreaming
+    ((On, On), (Off, On)), true, Some StopTrading
+    ((On, On), (On, On)), false, None
     ] |> Seq.ofList
         
 [<Fact>]
 let ``connectionHandle: `` () =
     let test (state, validState, expected) =
-        let test, add = testResult ()
-        let testLog, addLog = testResult ()
+        let testAssert, add = testResult ()
         let getConnectionState () = state
-        let log msg = msg |> sprintf "%A" |> addLog
-        connectionHandle 
-            log log getConnectionState (reactorMock add) ()
-        let getExpected = function | None -> [] | Some value -> [value]
-        expected |> getExpected |> test
+        let log msg = msg |> print |> add
+        let react = reactorMock (print >> add)
+        connectionHandle log log getConnectionState react ()
         let invalid = 
-            @"""Invalid connection state. Should not happen!"""
-        match state, validState with
-        | ((Logon, Logon), (Logon, Logon)), true -> []
-        | _, true -> [ (sprintf "%A" state) ]
-        | _, false -> [ (sprintf "%A" state); invalid ]
-        |> testLog
+            "Invalid connection state. Should not happen!"
+        match state, validState, expected with
+        | ((On, Off), (On, On)), true, None -> []
+        | _, true, None -> [ print state ]
+        | _, true, Some value -> 
+            [ print state; print value ]
+        | _, false, None -> [ print state; invalid ]
+        | _, false, Some value -> 
+            [ print state; invalid; print value ]
+        |> testAssert
     connectionTestData |> Seq.iter test

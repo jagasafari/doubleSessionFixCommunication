@@ -1,21 +1,19 @@
 module Connection
 
-type SessionState = Logon | Logout
+type SessionState = On | Off
 
 let connectionState () =
-    let mutable state = (Logout, Logout), (Logout, Logout)
+    let mutable state = (Off, Off), (Off, Off)
     let get () = state
-    let update (a1, b1) (a2, b2) = 
-        (a1 <> b1 && a1 = a2 && b1 = b2) |> not
     let updateStreaming streamingState = 
         let _, prev = state
-        let _, tradingState = prev
-        if update prev (streamingState, tradingState)
+        let prevStreamingState, tradingState = prev
+        if prevStreamingState <> streamingState
         then state <- prev, (streamingState, tradingState)
     let updateTrading tradingState =
         let _, prev = state
-        let streamingState, _ = prev
-        if update prev (streamingState, tradingState) 
+        let streamingState, prevTradingState = prev
+        if prevTradingState <> tradingState
         then state <- prev, (streamingState, tradingState)
     get, updateStreaming, updateTrading
 
@@ -24,43 +22,42 @@ type ConnectionMsg =
 
 type TargetAction = Disconnecting | Connecting
 
-let reactor startStreaming startTrading stopStreaming stopTrading 
+let react startStreaming startTrading stopStreaming stopTrading 
     = function
     | StartStreaming -> startStreaming()
     | StartTrading -> startTrading()
     | StopStreaming -> stopStreaming()
     | StopTrading -> stopTrading()
-    
-let connectionHandle logInfo logError getState reactor () = 
+
+let recoverFromInvalidState react = function
+    | (On, On), (On, On) -> ()
+    | (Off, Off), (On, On) -> ()
+    | (Off, On), (On, On) -> ()
+    | (On, On), (Off, Off) -> react StartStreaming
+    | (On, Off), (On, Off)  -> react StopStreaming
+    | (On, Off), (Off, On)  -> react StopTrading
+    | (Off, On), (On, Off) -> react StopStreaming
+    | (Off, On), (Off, On) -> react StopTrading   
+    | _ -> ()
+
+let connectionHandle logInfo logError getState react () = 
     let logInvalidState () = 
         logError "Invalid connection state. Should not happen!"
     let state = getState ()
     
     match state with
-    | (Logon, Logon), (Logon, Logon) -> () 
+    | (On, Off), (On, On) -> () 
     | _ -> logInfo state
 
     match state with
-    | (Logon, Logon), (Logon, Logon) -> ()
-    | (Logon, Logout), (Logon, Logon) -> ()
-    | (Logon, Logout), (Logout, Logout) -> reactor StartStreaming
-    | (Logout, Logout), (Logout, Logout) -> reactor StartStreaming
-    | (Logout, Logon), (Logout, Logout) -> reactor StartStreaming
-    | (Logout, Logout), (Logon, Logout) -> reactor StartTrading
-    | (Logout, Logout), (Logout, Logon) -> reactor StopTrading
-    | (Logon, Logon), (Logon, Logout) -> reactor StopStreaming
-    | (Logon, Logon), (Logout, Logon) -> reactor StopTrading
-// hadling state makes below cases impossible, 
-// if they happen, then the code is broken
-    | (Logout, Logout), (Logon, Logon) -> logInvalidState ()
-    | (Logout, Logon), (Logon, Logon) -> logInvalidState ()
-    | (Logon, Logon), (Logout, Logout) ->
-        logInvalidState (); reactor StartStreaming
-    | (Logon, Logout), (Logon, Logout)  -> 
-        logInvalidState (); reactor StopStreaming
-    | (Logon, Logout), (Logout, Logon)  -> 
-        logInvalidState (); reactor StopTrading
-    | (Logout, Logon), (Logon, Logout) -> 
-        logInvalidState (); reactor StopStreaming
-    | (Logout, Logon), (Logout, Logon) ->
-        logInvalidState (); reactor StopTrading
+    | (On, Off), (On, On) -> ()
+    | (On, Off), (Off, Off) -> react StartStreaming
+    | (Off, Off), (Off, Off) -> react StartStreaming
+    | (Off, On), (Off, Off) -> react StartStreaming
+    | (Off, Off), (On, Off) -> react StartTrading
+    | (Off, Off), (Off, On) -> react StopTrading
+    | (On, On), (On, Off) -> react StopStreaming
+    | (On, On), (Off, On) -> react StopTrading
+    | _ -> 
+        logInvalidState () 
+        recoverFromInvalidState react state
