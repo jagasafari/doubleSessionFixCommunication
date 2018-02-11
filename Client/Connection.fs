@@ -20,8 +20,6 @@ let connectionState () =
 type ConnectionMsg = 
     StartStreaming | StartTrading | StopStreaming | StopTrading
 
-type TargetAction = Disconnecting | Connecting
-
 let react startStreaming startTrading stopStreaming stopTrading 
     = function
     | StartStreaming -> startStreaming()
@@ -29,7 +27,7 @@ let react startStreaming startTrading stopStreaming stopTrading
     | StopStreaming -> stopStreaming()
     | StopTrading -> stopTrading()
 
-let recoverFromInvalidState react = function
+let recoverFromImpossible react = function
     | (On, On), (On, On) -> ()
     | (Off, Off), (On, On) -> ()
     | (Off, On), (On, On) -> ()
@@ -60,4 +58,4 @@ let connectionHandle logInfo logError getState react () =
     | (On, On), (Off, On) -> react StopTrading
     | _ -> 
         logInvalidState () 
-        recoverFromInvalidState react state
+        recoverFromImpossible react state
