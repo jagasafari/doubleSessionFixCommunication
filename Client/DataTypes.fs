@@ -14,7 +14,7 @@ type Log4NetFactory () =
                 member this.OnOutgoing(msg) = msg |> sprintf "out: %A" |> print
                 member this.OnIncoming(msg) = msg |> sprintf "in: %A" |> print }
 
-type ServerApp () =
+type App () =
     interface IApplication with
         member this.OnCreate(sessionId) = ()
         member this.FromAdmin(message, sessionId) = ()    
