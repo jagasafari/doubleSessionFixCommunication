@@ -1,4 +1,4 @@
-module SignatureUtil
+module Common.SignatureUtil
 
 open System
 open System.IO

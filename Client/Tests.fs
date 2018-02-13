@@ -5,18 +5,8 @@ open System.Collections.Generic
 open Xunit
 open Swensen.Unquote
 open Connection
-open Client
 
 let print msg = sprintf "%A" msg
-
-[<Fact>]
-[<Trait("Category", "Integration")>]
-let ``create socket`` () =
-    let configPath = "fix.cfg"
-    let start, stop = createSocket configPath
-    start ()
-    Threading.Thread.Sleep 1000
-    stop ()
 
 [<Fact>]
 let ``connectionState: crud`` () =
