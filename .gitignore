@@ -1,4 +1,5 @@
 bin
+logs
 obj
 log-pricing
 log-trading
