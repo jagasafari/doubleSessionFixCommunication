@@ -4,8 +4,18 @@ open System
 open System.Collections.Generic
 open Xunit
 open Swensen.Unquote
+open Microsoft.Extensions.Configuration
 open Connection
+open DataTypes
+open Configuration
 
+[<Fact>]
+let ``getConfig: `` () =
+    let cfg: AppConfig = appConfig.Value
+    cfg.ReactIntervalStart =! 1
+    cfg.ReactIntervalRun =! 1
+    cfg.ReactIntervalStop =! 30
+    
 let print msg = sprintf "%A" msg
 
 [<Fact>]

@@ -2,6 +2,11 @@ module DataTypes
 
 open QuickFix
 
+type AppConfig =
+    { ReactIntervalStart: int
+      ReactIntervalRun: int
+      ReactIntervalStop: int }
+
 type App () =
     interface IApplication with
         member this.OnCreate(sessionId) = ()
