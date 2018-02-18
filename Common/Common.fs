@@ -22,6 +22,8 @@ let parseFixMsg (msg: string) =
     msg.Replace(msg.[posOfSeperator], '|')
 
 type MyLogFactory (log: log4net.ILog) =
+    let isPricingMsg = function 
+        | (msg: string) when msg.Contains("35=W") -> true | _ -> false
     interface ILogFactory with
         member this.Create(sessionId) =
             { new ILog with
@@ -32,7 +34,9 @@ type MyLogFactory (log: log4net.ILog) =
                 member this.OnOutgoing(msg) = 
                                 msg |> parseFixMsg |> sprintf "out|%s" |> log.Info
                 member this.OnIncoming(msg) = 
-                                msg |> parseFixMsg |> sprintf "in|%s" |> log.Info }
+                                let logMsg = 
+                                    if isPricingMsg msg then log.Debug else log.Info
+                                msg |> parseFixMsg |> sprintf "in|%s" |> logMsg }
 
 let createSocket log (configPath: string) create =
     let getSettings () =
