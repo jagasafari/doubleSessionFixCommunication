@@ -2,19 +2,23 @@ module Tests
 
 open System
 open Xunit
-open Common.SignatureUtil
+open Common.TypeLookUp
+open Common.TestUtil
 open QuickFix.FIX42
 open QuickFix.Fields
 open Swensen.Unquote
 open Prices
+open Log
+open Server.Model
     
 [<Fact>]
 let ``sig`` () =
-    writeTypeMembers typeof<MDEntrySize>
+    writeType typeof<MDEntrySize>
 
-let cast3TestData =
-    let castTuple (x, y, z) = [|x:>obj; y:>obj; z:>obj|]
-    Seq.map castTuple
+[<Fact>]
+let ``create logReact: log file -> logged once`` () =
+    log.Value |> ignore
+    log.Value |> ignore
 
 let groupTestData =
     seq {

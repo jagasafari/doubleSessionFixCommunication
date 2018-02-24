@@ -6,7 +6,8 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="SignatureUtil.fs" />
+    <Compile Include="TypeLookUp.fs" />
+    <Compile Include="TestUtil.fs" />
     <Compile Include="Common.fs" />
     <Compile Include="Tests.fs" />
     <Compile Include="Program.fs" />

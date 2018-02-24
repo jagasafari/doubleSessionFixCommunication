@@ -5,12 +5,12 @@ open Xunit
 open log4net
 open System.IO
 open System.Reflection
-open Common.SignatureUtil
+open Common.TypeLookUp
     
 [<Fact>]
 [<Trait("Category", "Integration")>]
 let ``sig`` () =
-    writeTypeMembers typeof<LogManager>
+    writeType typeof<LogManager>
 
 type internal FixConnection = interface end
 

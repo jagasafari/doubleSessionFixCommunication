@@ -1,4 +1,4 @@
-module Common.SignatureUtil
+module Common.TypeLookUp
 
 open System
 open System.IO
@@ -23,7 +23,7 @@ let append (t: Type) fileName theme getMembers =
         t |> getMembers |> Array.map (sprintf "%A")
     File.AppendAllLines(fileName, members)
 
-let writeTypeMembers (t: Type) =
+let writeType (t: Type) =
     let fileName = getTypeFileName t
     if File.Exists fileName 
     then File.Delete fileName

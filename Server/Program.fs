@@ -5,10 +5,10 @@ open QuickFix
 open Common.Common
 open Configuration
 open Socket
-open log4net
+open Log
 
 let [<EntryPoint>] main _ =
-    configureLog4Net ()
     let config = appConfig.Value
-    let start, stop, clear = createSocket config.QuickFixConfigFile
+    let start, stop, clear = 
+        createSocket config.QuickFixConfigFile log.Value
     start (); watchToExit (); stop (); clear(); 0
