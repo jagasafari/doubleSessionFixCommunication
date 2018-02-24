@@ -12,20 +12,34 @@ open Log
 open Server.Model
     
 [<Fact>]
+[<Trait("Category", "Integration")>]
 let ``sig`` () =
     writeType typeof<MDEntrySize>
 
-[<Fact>]
+let logReactTestData =
+    [
+    (FixEvent "abc", "FixEvent|event=abc")
+    (FixMsgOutgoing "8=FIX.4.4", "out|8=FIX.4.4")
+    (FixMsgIncoming "8=abc\u00015=d", "in|8=abc|5=d")
+    ] |> cast2TestData
+
+[<Theory; MemberData("logReactTestData")>]
+[<Trait("Category", "Integration")>]
+let ``logReact: cases`` msg expected =
+    let log, getResult = testCmd ()
+    logReact log msg
+    getResult () =! expected
+
 let ``create logReact: log file -> logged once`` () =
     log.Value |> ignore
     log.Value |> ignore
 
 let groupTestData =
-    seq {
-        yield (0.0, Bid, '0')
-        yield (1000.0, Bid, '0')
-        yield (1000.0, Ask, '1')
-    } |> cast3TestData
+    [
+    (0.0, Bid, '0')
+    (1000.0, Bid, '0')
+    (1000.0, Ask, '1')
+    ] |> cast3TestData
 
 [<Theory; MemberData("groupTestData")>]
 let ``price group`` price side expectedSide =

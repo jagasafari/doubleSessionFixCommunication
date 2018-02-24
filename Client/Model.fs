@@ -1,11 +1,4 @@
-namespace Server.Model
-
-type AppConfig =
-    {
-    QuickFixConfigFile: string
-    }
-
-type PriceSide = | Bid | Ask
+namespace Client.Model
 
 type Connection = interface end
 

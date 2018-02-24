@@ -17,6 +17,4 @@ let configureLog4Net () =
             log4net.LogManager.GetRepository(Assembly.GetEntryAssembly())
     log4net.Config.XmlConfigurator.Configure(logRepository, fi) |> ignore
 
-let parseFixMsg (msg: string) = 
-    let posOfSeperator = 9
-    msg.Replace(msg.[posOfSeperator], '|')
+let parseFixMsg (msg: string) = msg.Replace('\u0001', '|')
