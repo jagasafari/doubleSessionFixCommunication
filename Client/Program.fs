@@ -1,26 +1,12 @@
 module Program 
 
 open System
-open QuickFix
-open QuickFix.Transport
-open log4net
-open Microsoft.Extensions.Configuration
 open Common.Common
 open Configuration
-open DataTypes
-
-let create app logger factory settings =
-    let socket = new SocketInitiator(app, factory, settings, logger)
-    let stop () = socket.Stop (true)
-    socket.Start, stop, socket.Dispose
-
-type internal FixConnection = interface end
+open Socket
 
 let [<EntryPoint>] main _ = 
-    let configPath = "fix.cfg"
-    
     configureLog4Net ()
-    let logger = LogManager.GetLogger typeof<FixConnection>
-    let create' = create (App ()) (PricingLogFactory logger)
-    let start, stop, clean = createSocket configPath create'
+    let config = appConfig.Value
+    let start, stop, clean = createSocket config.QuickFixConfigFile
     start (); watchToExit (); stop (); clean (); 0

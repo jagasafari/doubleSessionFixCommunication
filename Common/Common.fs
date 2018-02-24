@@ -20,12 +20,3 @@ let configureLog4Net () =
 let parseFixMsg (msg: string) = 
     let posOfSeperator = 9
     msg.Replace(msg.[posOfSeperator], '|')
-
-let createSocket (configPath: string) create =
-    let getSettings () =
-        let config = configPath |> File.ReadAllText
-        use configReader = new StringReader(config)
-        SessionSettings configReader
-    let factory = MemoryStoreFactory()
-    let settings = getSettings ()
-    create factory settings

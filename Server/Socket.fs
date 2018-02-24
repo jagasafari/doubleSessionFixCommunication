@@ -1,5 +1,7 @@
-module DataTypes
+module Socket 
 
+open System 
+open System.IO
 open QuickFix
 open Common.Common
 
@@ -25,3 +27,21 @@ type MyLogFactory (log: log4net.ILog) =
                                 msg |> parseFixMsg |> sprintf "out|%s" |> log.Info
                 member this.OnIncoming(msg) = 
                                 msg |> parseFixMsg |> sprintf "in|%s" |> log.Info }
+
+type FixServerConnection = interface end
+
+let createSocket configPath =
+    let getSettings () =
+        let config = configPath |> File.ReadAllText
+        use configReader = new StringReader(config)
+        SessionSettings configReader
+    let log = log4net.LogManager.GetLogger 
+                            typeof<FixServerConnection>
+    let app = App ()
+    let logger = MyLogFactory log
+    let factory = MemoryStoreFactory()
+    let settings = getSettings ()
+    let socket = new ThreadedSocketAcceptor(
+                            app, factory, settings, logger)
+    let stop () = socket.Stop(true) 
+    socket.Start, stop, socket.Dispose
