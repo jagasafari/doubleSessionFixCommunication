@@ -5,15 +5,16 @@ open System.IO
 open QuickFix
 open Server.Model
 
-type App () =
-    interface IApplication with
-        member this.OnCreate(sessionId) = ()
-        member this.FromAdmin(message, sessionId) = ()    
-        member this.ToAdmin(message, sessionId) = ()    
-        member this.OnLogon(sessionId) = ()    
-        member this.OnLogout(sessionId) = ()    
-        member this.FromApp(message, sessionId) = ()    
-        member this.ToApp(message, sessionId) = ()    
+let app react =
+    { new IApplication with
+        member this.OnCreate(sessionId) = OnCreate sessionId |> react
+        member this.FromAdmin(msg, sessionId) = FromAdmin msg |> react
+        member this.ToAdmin(msg, sessionId) = ToAdmin msg |> react
+        member this.OnLogon(sessionId) = OnLogon |> react    
+        member this.OnLogout(sessionId) = OnLogout |> react    
+        member this.FromApp(msg, sessionId) = FromApp msg |> react
+        member this.ToApp(msg, sessionId) = ToApp msg |> react
+    }
 
 let logFactory react =
     { new ILogFactory with
@@ -21,21 +22,27 @@ let logFactory react =
             { new ILog with
                 member this.Clear() = ()
                 member this.Dispose() = ()
-                member this.OnEvent(e) = FixEvent e |> react
-                member this.OnOutgoing(msg) = FixMsgOutgoing msg |> react
-                member this.OnIncoming(msg) = FixMsgIncoming msg |> react
+                member this.OnEvent(e) = OnEvent e |> react
+                member this.OnOutgoing(msg) = OnOutgoing msg |> react
+                member this.OnIncoming(msg) = OnIncoming msg |> react
             } 
     }
 
-let createSocket configPath log =
+let createSocket configPath (logFixMsg, logAppMsg) =
     let getSettings () =
         let config = configPath |> File.ReadAllText
         use configReader = new StringReader(config)
         SessionSettings configReader
+    let (publishApp, triggerApp) =
+        let evt = Event<_>() in (evt.Publish, evt.Trigger)
+    let (publishLog, triggerLog) =
+        let evt = Event<_>() in (evt.Publish, evt.Trigger)
+    publishApp.Add logAppMsg
+    publishLog.Add logFixMsg
     let socket = new ThreadedSocketAcceptor(
-                            App (), 
-                            MemoryStoreFactory(),
+                            app triggerApp, 
+                            MemoryStoreFactory (),
                             getSettings (), 
-                            logFactory log)
+                            logFactory triggerLog)
     let stop () = socket.Stop(true); socket.Dispose()
     socket.Start, stop

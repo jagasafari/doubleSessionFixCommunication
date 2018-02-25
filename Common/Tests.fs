@@ -9,8 +9,7 @@ open Common.TypeLookUp
     
 [<Fact>]
 [<Trait("Category", "Integration")>]
-let ``sig`` () =
-    writeType typeof<LogManager>
+let ``sig`` () = writeType typeof<LogManager>
 
 type internal FixConnection = interface end
 
@@ -23,4 +22,3 @@ let ``log4net: log to file`` () =
     Config.XmlConfigurator.Configure(logRepository, fi) |> ignore
     let logger = LogManager.GetLogger typeof<FixConnection>
     logger.Info "########################################"
-    ()

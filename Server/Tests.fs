@@ -10,24 +10,34 @@ open Swensen.Unquote
 open Prices
 open Log
 open Server.Model
-    
+
 [<Fact>]
 [<Trait("Category", "Integration")>]
 let ``sig`` () =
-    writeType typeof<MDEntrySize>
+    writeType typeof<QuickFix.Message>
 
 let logReactTestData =
     [
-    (FixEvent "abc", "FixEvent|event=abc")
-    (FixMsgOutgoing "8=FIX.4.4", "out|8=FIX.4.4")
-    (FixMsgIncoming "8=abc\u00015=d", "in|8=abc|5=d")
+    (OnCreate null, "OnCreate|SessionId=<null>")
+    (OnLogon, "OnLogon")
+    (OnLogout, "OnLogout")
+    (ToAdmin null, "ToAdmin|Message=")
+    (FromAdmin null, "FromAdmin|Message=")
+    (ToApp null, "ToApp|Message=")
+    (FromApp null, "FromApp|Message=")
+    ]
+let logFixMsgTestData =
+    [
+    (OnEvent "abc", "Event|event=abc")
+    (OnOutgoing "8=FIX.4.4", "out|8=FIX.4.4")
+    (OnIncoming "8=abc\u00015=d", "in|8=abc|5=d")
     ] |> cast2TestData
 
-[<Theory; MemberData("logReactTestData")>]
+[<Theory; MemberData("logFixMsgTestData")>]
 [<Trait("Category", "Integration")>]
 let ``logReact: cases`` msg expected =
     let log, getResult = testCmd ()
-    logReact log msg
+    quickFixLogMsgHandle log msg
     getResult () =! expected
 
 let ``create logReact: log file -> logged once`` () =

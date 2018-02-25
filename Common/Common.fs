@@ -14,7 +14,13 @@ let rec watchToExit () =
 let configureLog4Net () =
     let fi = FileInfo "log4net.config"
     let logRepository = 
-            log4net.LogManager.GetRepository(Assembly.GetEntryAssembly())
+            log4net.LogManager.GetRepository(
+                                Assembly.GetEntryAssembly())
     log4net.Config.XmlConfigurator.Configure(logRepository, fi) |> ignore
 
-let parseFixMsg (msg: string) = msg.Replace('\u0001', '|')
+let parseFixMsg (msg: obj) = 
+    match msg with
+    | null -> String.Empty
+    | :? string as x -> x.Replace('\u0001', '|')
+    | :? QuickFix.Message as x -> String.Empty
+    | x -> x |> sprintf "%A"

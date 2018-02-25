@@ -2,8 +2,20 @@ namespace Client.Model
 
 type Connection = interface end
 
-type LogMsg = 
-    | FixEvent of string 
-    | FixMsgOutgoing of string
-    | FixMsgIncoming of string
+type AppConfig =
+    {
+    QuickFixConfigFile: string
+    }
+type QuicFixLoggingMsg = 
+    | OnEvent of string 
+    | OnOutgoing of string
+    | OnIncoming of string
 
+type ApplicationMsg =
+    | OnCreate of QuickFix.SessionID
+    | ToAdmin of QuickFix.Message
+    | FromAdmin of QuickFix.Message
+    | ToApp of QuickFix.Message
+    | FromApp of QuickFix.Message
+    | OnLogon
+    | OnLogout

@@ -2,11 +2,7 @@ module Configuration
 
 open System
 open Microsoft.Extensions.Configuration
-
-type AppConfig =
-    {
-    QuickFixConfigFile: string
-    }
+open Client.Model
 
 let appConfig =
     lazy
