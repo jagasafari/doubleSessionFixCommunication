@@ -7,7 +7,7 @@ open Log
 open Client.Model
 open Common.TestUtil
 
-let logReactTestData =
+let logFixMsgTestData =
     [
     (OnEvent "abc", "Event|event=abc", "")
     (OnOutgoing "8=FIX.4.4", "out|8=FIX.4.4", "")
@@ -15,7 +15,7 @@ let logReactTestData =
     (OnIncoming "8=abc\u00015=d\u000135=W", "", "in|8=abc|5=d|35=W")
     ] |> cast3TestData
 
-[<Theory; MemberData("logReactTestData")>]
+[<Theory; MemberData("logFixMsgTestData")>]
 [<Trait("Category", "Integration")>]
 let ``logReact: cases`` msg expectedInfo expectedDebug =
     let logDebug, getResultDebug = testCmd ()

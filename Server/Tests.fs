@@ -16,16 +16,24 @@ open Server.Model
 let ``sig`` () =
     writeType typeof<QuickFix.Message>
 
-let logReactTestData =
+let ApplicationMsgTestData =
     [
     (OnCreate null, "OnCreate|SessionId=<null>")
-    (OnLogon, "OnLogon")
-    (OnLogout, "OnLogout")
+    (OnLogon null, "OnLogon|SessionId=<null>")
+    (OnLogout null, "OnLogout|SessionId=<null>")
     (ToAdmin null, "ToAdmin|Message=")
     (FromAdmin null, "FromAdmin|Message=")
     (ToApp null, "ToApp|Message=")
     (FromApp null, "FromApp|Message=")
-    ]
+    ] |> cast2TestData
+
+[<Theory; MemberData("ApplicationMsgTestData")>]
+[<Trait("Category", "Integration")>]
+let ``logApplicationMsg: cases`` msg expected =
+    let log, getResult = testCmd ()
+    applicationMsgLoggingHandle log msg
+    getResult () =! expected
+
 let logFixMsgTestData =
     [
     (OnEvent "abc", "Event|event=abc")
@@ -39,10 +47,6 @@ let ``logReact: cases`` msg expected =
     let log, getResult = testCmd ()
     quickFixLogMsgHandle log msg
     getResult () =! expected
-
-let ``create logReact: log file -> logged once`` () =
-    log.Value |> ignore
-    log.Value |> ignore
 
 let groupTestData =
     [

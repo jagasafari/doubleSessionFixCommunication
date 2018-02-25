@@ -12,8 +12,8 @@ let app react =
         member this.OnCreate(sessionId) = OnCreate sessionId |> react
         member this.FromAdmin(msg, sessionId) = FromAdmin msg |> react
         member this.ToAdmin(msg, sessionId) = ToAdmin msg |> react
-        member this.OnLogon(sessionId) = OnLogon |> react    
-        member this.OnLogout(sessionId) = OnLogout |> react    
+        member this.OnLogon(sessionId) = OnLogon sessionId |> react    
+        member this.OnLogout(sessionId) = OnLogout sessionId |> react    
         member this.FromApp(msg, sessionId) = FromApp msg |> react
         member this.ToApp(msg, sessionId) = ToApp msg |> react
     }

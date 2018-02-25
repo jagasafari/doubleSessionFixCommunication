@@ -17,5 +17,5 @@ type ApplicationMsg =
     | FromAdmin of QuickFix.Message
     | ToApp of QuickFix.Message
     | FromApp of QuickFix.Message
-    | OnLogon
-    | OnLogout
+    | OnLogon of QuickFix.SessionID
+    | OnLogout of QuickFix.SessionID

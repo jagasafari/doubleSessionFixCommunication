@@ -2,11 +2,20 @@ module Tests
 
 open System
 open Xunit
+open Swensen.Unquote
 open log4net
 open System.IO
 open System.Reflection
 open Common.TypeLookUp
+open Common.Common
     
+type Letter = | A | B
+
+[<Fact>]
+let ``name of union case`` () =
+    let example = B
+    getUnionCaseName<Letter> example =! "B"
+
 [<Fact>]
 [<Trait("Category", "Integration")>]
 let ``sig`` () = writeType typeof<LogManager>

@@ -8,18 +8,13 @@ let quickFixLogMsgHandle info = function
     | OnOutgoing x -> x |> parseFixMsg |> sprintf "out|%s" |> info
     | OnIncoming x -> x |> parseFixMsg |> sprintf "in|%s" |> info
 
-let applicationMsgLoggingHandle info = function
-    | OnCreate x -> x |> sprintf "OnCreate|SessionId=%A" |> info
-    | OnLogon -> info "OnLogon"
-    | OnLogout -> info "OnLogout"
-    | ToAdmin x -> 
-        x |> parseFixMsg |> sprintf "ToAdmin|Message=%s" |> info
-    | FromAdmin x -> 
-        x |> parseFixMsg |> sprintf "FromAdmin|Message=%s" |> info
-    | ToApp x -> 
-        x |> parseFixMsg |> sprintf "ToApp|Message=%s" |> info
-    | FromApp x -> 
-        x |> parseFixMsg |> sprintf "FromApp|Message=%s" |> info
+let applicationMsgLoggingHandle info msg =
+    let name = getUnionCaseName<ApplicationMsg> msg
+    let logMsg = parseFixMsg >> sprintf "%s|Message=%s" name >> info
+    let logSessionId = sprintf "%s|SessionId=%A" name >> info
+    match msg with
+    | OnCreate x | OnLogon x | OnLogout x -> logSessionId x
+    | ToAdmin x | FromAdmin x | ToApp x | FromApp x -> logMsg x
 
 let log = 
     lazy

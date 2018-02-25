@@ -1,6 +1,8 @@
 module Prices
 
 open System
+open System.Threading
+open QuickFix
 open QuickFix.FIX42
 open QuickFix.Fields
 open Server.Model
@@ -18,3 +20,28 @@ let group price side =
     gr.MDEntryPx <- MDEntryPx price
     gr.MDEntryType <- side |> entryType |> MDEntryType 
     gr
+
+let pairFullRefresh pair groups =
+    let pairRefresh = MarketDataSnapshotFullRefresh ()
+    pairRefresh.Symbol <- Symbol pair
+    pairRefresh.MDReqID <- MDReqID pair
+    let numGroups = groups |> List.length
+    pairRefresh.NoMDEntries <- NoMDEntries numGroups
+    groups |> List.iter pairRefresh.AddGroup
+    pairRefresh
+
+let sendPairFullRefresh getSessionId () =
+    match getSessionId () with
+    | Some id ->
+        [ group 4.21m Bid; group 1.11m Ask ]
+        |> pairFullRefresh "EUR/PLN"
+        |> Session.LookupSession(id).Send
+        |> ignore
+    | None -> ()
+
+let timer interval callback =
+    let tc = TimerCallback(fun _ -> callback())
+    (new Timer(tc, null, interval, Timeout.Infinite)).Dispose
+
+let initPricing getSessionId = 
+    getSessionId |> sendPairFullRefresh |> timer 200
