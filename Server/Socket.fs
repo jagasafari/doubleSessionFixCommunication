@@ -59,6 +59,6 @@ let createSocket configPath (logFixMsg, logAppMsg) =
                             MemoryStoreFactory (),
                             getSettings (), 
                             logFactory triggerLog)
-    let stopPricing () = initPricing getSessionId
+    let stopPricing = initPricing getSessionId
     let stop () = stopPricing(); socket.Stop(true); socket.Dispose()
     socket.Start, stop

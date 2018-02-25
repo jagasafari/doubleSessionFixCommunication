@@ -40,8 +40,9 @@ let sendPairFullRefresh getSessionId () =
     | None -> ()
 
 let timer interval callback =
-    let tc = TimerCallback(fun _ -> callback())
-    (new Timer(tc, null, interval, Timeout.Infinite)).Dispose
+    let c = TimerCallback(fun _ -> callback())
+    let t = new Timer(c, null, interval, Timeout.Infinite)
+    fun () -> t.Dispose ()
 
 let initPricing getSessionId = 
     getSessionId |> sendPairFullRefresh |> timer 200
