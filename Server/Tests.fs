@@ -1,6 +1,7 @@
 module Tests
 
 open System
+open System.Threading
 open Xunit
 open Common.TypeLookUp
 open Common.TestUtil
@@ -8,15 +9,57 @@ open QuickFix.FIX42
 open QuickFix.Fields
 open Swensen.Unquote
 open Prices
+open Socket
 open Log
 open Server.Model
+
+let logError _ = ()
+
+[<Fact>]
+let ``timer started`` () =
+    let add, get = mock ()
+    let callback () = add "1"
+    let stop = timer logError 200 callback
+    get () =! []
+    Thread.Sleep 210
+    get () =! ["1"]
+    stop ()
+
+[<Fact>]
+let ``timer callback throws`` () =
+    let add, get = mock ()
+    let callback () = failwith "1"
+    let stop = timer logError 200 callback
+    get () =! []
+    Thread.Sleep 210
+    get () =! []
+    stop ()
+
+[<Fact>]
+let ``session state:`` () =
+    let get, set = state ()
+    get () =! None
+    set (Some 5)
+    get () =! Some 5
+    set None
 
 [<Fact>]
 [<Trait("Category", "Integration")>]
 let ``sig`` () =
     writeType typeof<QuickFix.Message>
 
-let ApplicationMsgTestData =
+[<Fact>]
+let ``appHandle: setSesstion`` () =
+    let add, get = mock ()
+    let handle = appHandle add
+    handle (OnLogon null)
+    get () =! [Some null]
+    handle (OnLogout null)
+    get () =! [Some null; None]
+    handle (OnCreate null)
+    get () =! [Some null; None]
+
+let appMsgTestData =
     [
     (OnCreate null, "OnCreate|SessionId=<null>")
     (OnLogon null, "OnLogon|SessionId=<null>")
@@ -27,12 +70,12 @@ let ApplicationMsgTestData =
     (FromApp null, "FromApp|Message=")
     ] |> cast2TestData
 
-[<Theory; MemberData("ApplicationMsgTestData")>]
+[<Theory; MemberData("appMsgTestData")>]
 [<Trait("Category", "Integration")>]
-let ``logApplicationMsg: cases`` msg expected =
-    let log, getResult = testCmd ()
-    applicationMsgLoggingHandle log msg
-    getResult () =! expected
+let ``logappMsg: cases`` msg expected =
+    let log, get = mock ()
+    logAppMsg log msg
+    get () =! [expected]
 
 let logFixMsgTestData =
     [
@@ -44,9 +87,9 @@ let logFixMsgTestData =
 [<Theory; MemberData("logFixMsgTestData")>]
 [<Trait("Category", "Integration")>]
 let ``logReact: cases`` msg expected =
-    let log, getResult = testCmd ()
-    quickFixLogMsgHandle log msg
-    getResult () =! expected
+    let log, get = mock ()
+    logQuickFixMsg log msg
+    get () =! [expected]
 
 let groupTestData =
     [

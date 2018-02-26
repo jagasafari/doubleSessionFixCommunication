@@ -23,8 +23,9 @@ let configureLog4Net () =
     log4net.Config.XmlConfigurator.Configure(logRepository, fi) |> ignore
 
 let parseFixMsg (msg: obj) = 
+    let replace (x: string) = x.Replace('\u0001', '|')
     match msg with
     | null -> String.Empty
-    | :? string as x -> x.Replace('\u0001', '|')
-    | :? QuickFix.Message as x -> String.Empty
+    | :? string as x -> replace x
+    | :? QuickFix.Message as x -> x.ToString() |> replace
     | x -> x |> sprintf "%A"

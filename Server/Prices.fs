@@ -30,19 +30,24 @@ let pairFullRefresh pair groups =
     groups |> List.iter pairRefresh.AddGroup
     pairRefresh
 
+let send sessionId msg =
+    Session.SendToTarget(msg, sessionId) |> ignore
+
 let sendPairFullRefresh getSessionId () =
     match getSessionId () with
     | Some id ->
         [ group 4.21m Bid; group 1.11m Ask ]
         |> pairFullRefresh "EUR/PLN"
-        |> Session.LookupSession(id).Send
+        |> send id
         |> ignore
     | None -> ()
 
-let timer interval callback =
-    let c = TimerCallback(fun _ -> callback())
-    let t = new Timer(c, null, interval, Timeout.Infinite)
+let timer logError interval callback =
+    let c _ = try callback () with | e -> logError e
+    let tc = TimerCallback c
+    let t = new Timer(tc, null, interval, Timeout.Infinite)
     fun () -> t.Dispose ()
 
-let initPricing getSessionId = 
-    getSessionId |> sendPairFullRefresh |> timer 200
+let initPricing logError getSessionId = 
+    let callback = sendPairFullRefresh getSessionId 
+    timer logError 200 callback

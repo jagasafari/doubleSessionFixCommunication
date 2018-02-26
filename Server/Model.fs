@@ -14,6 +14,7 @@ type QuicFixLoggingMsg =
     | OnOutgoing of string
     | OnIncoming of string
 
+[<NoComparisonAttribute>]
 type ApplicationMsg =
     | OnCreate of QuickFix.SessionID
     | ToAdmin of QuickFix.Message

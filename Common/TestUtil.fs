@@ -1,6 +1,13 @@
 module Common.TestUtil
 
 open System
+open System.Collections.Generic
+
+let mock () =
+    let result = List<_>()
+    let add msg = result.Add msg
+    let get () = result |> Seq.toList
+    add, get 
 
 let testCmd () =
     let mutable result = String.Empty

@@ -18,11 +18,11 @@ let logFixMsgTestData =
 [<Theory; MemberData("logFixMsgTestData")>]
 [<Trait("Category", "Integration")>]
 let ``logReact: cases`` msg expectedInfo expectedDebug =
-    let logDebug, getResultDebug = testCmd ()
-    let logInfo, getResultInfo = testCmd ()
-    quickFixLogMsgHandle logDebug logInfo msg
-    getResultDebug () =! expectedDebug
-    getResultInfo () =! expectedInfo
+    let logDebug, getDebug = testCmd ()
+    let logInfo, getInfo = testCmd ()
+    logQuickFixMsg logDebug logInfo msg
+    getDebug () =! expectedDebug
+    getInfo () =! expectedInfo
 
 [<Fact>]
 let ``getConfig: `` () =

@@ -6,11 +6,13 @@ type AppConfig =
     {
     QuickFixConfigFile: string
     }
+
 type QuicFixLoggingMsg = 
     | OnEvent of string 
     | OnOutgoing of string
     | OnIncoming of string
 
+[<NoComparisonAttribute>]
 type ApplicationMsg =
     | OnCreate of QuickFix.SessionID
     | ToAdmin of QuickFix.Message
