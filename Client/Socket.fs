@@ -3,6 +3,7 @@ module Socket
 open System
 open System.IO
 open QuickFix
+open QuickFix.Fields
 open QuickFix.Transport
 open Client.Model
 open Log
@@ -28,7 +29,24 @@ let logFactory react =
                 member __.OnEvent(e) = OnEvent e |> react 
                 member __.OnOutgoing(msg) = OnOutgoing msg |> react
                 member __.OnIncoming(msg) = OnIncoming msg |> react
-            } }
+            } 
+    }
+
+let decrypt x = x
+
+let updateLogonMsg config (msg: QuickFix.Message) =
+    match msg with
+    | :? FIX42.Logon as l ->
+        let (hb, ur, psw) = config
+        l.EncryptMethod <- EncryptMethod 0
+        l.HeartBtInt <- HeartBtInt hb
+        l.SetField(Username ur)
+        l.SetField(Password (decrypt psw))
+    | _ -> ()
+
+let appHandle updateLogonMsg = function
+    | ToAdmin msg -> updateLogonMsg msg
+    | OnLogon _ | OnLogout _ | OnCreate _ | FromAdmin _ | ToApp _ | FromApp _ -> ()
 
 let createSocket configPath triggerApp triggerLog =
     let getSettings () =

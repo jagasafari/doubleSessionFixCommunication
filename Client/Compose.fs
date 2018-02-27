@@ -11,5 +11,9 @@ let getApi (config: AppConfig) (log: log4net.ILog) =
     let (publishLog, triggerLog) =
         let evt = Event<_>() in (evt.Publish, evt.Trigger)
     publishApp.Add (logAppMsg log.Info)
+    (config.HeartbeatFrequency, config.User, config.Password)
+    |> updateLogonMsg
+    |> appHandle
+    |> publishApp.Add
     publishLog.Add (logQuickFixMsg log.Debug log.Info)
     createSocket config.QuickFixConfigFile triggerApp triggerLog

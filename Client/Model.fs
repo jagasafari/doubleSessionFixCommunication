@@ -5,6 +5,9 @@ type Connection = interface end
 type AppConfig =
     {
     QuickFixConfigFile: string
+    HeartbeatFrequency: int
+    User: string
+    Password: string
     }
 
 type QuicFixLoggingMsg = 

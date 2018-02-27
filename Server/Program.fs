@@ -1,6 +1,5 @@
 module Program 
 
-open System 
 open Common.Common
 open Server.Model
 open Configuration

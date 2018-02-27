@@ -1,6 +1,5 @@
 module Program 
 
-open System
 open Common.Common
 open Configuration
 open Client.Model

@@ -5,7 +5,9 @@ open Client.Model
 open Common.Common
 
 let isPricingMsg = function 
-    | (msg: string) when msg.Contains("35=W") -> true | _ -> false
+    | null -> false
+    | (msg: string) when msg.Contains("35=W") -> true 
+    | _ -> false
 
 let logQuickFixMsg debug info = function
     | OnEvent x -> x |> sprintf "Event|event=%s" |> info

@@ -28,3 +28,5 @@ let ``logReact: cases`` msg expectedInfo expectedDebug =
 let ``getConfig: `` () =
     let cfg: AppConfig = appConfig.Value
     cfg.QuickFixConfigFile =! "fix.cfg"
+    cfg.HeartbeatFrequency =! 60
+    cfg.User =! "user"
