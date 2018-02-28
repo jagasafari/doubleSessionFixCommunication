@@ -6,6 +6,36 @@ open Configuration
 open Log
 open Client.Model
 open Common.TestUtil
+open System.Threading
+
+let timer logError interval callback =
+    let c _ = try callback () with | e -> logError e
+    let tc = TimerCallback c
+    let t = new Timer(tc, null, interval, Timeout.Infinite)
+    fun () -> t.Dispose ()
+
+let startSubscribing callback () =
+    let log = getLog ()
+    timer log.Error 500 callback
+
+let handleSubscriptions refresh = ()
+
+let refreshCache pull =
+    let mutable cache: string list option = None
+    let refresh () = [], []
+    fun () -> refresh ()
+
+let subscriptionTestData =
+    [
+    ([1;4;6;0],[1;4;6;0],[])
+    ] |> cast3TestData
+
+[<Theory; MemberData("subscriptionTestData")>]
+let ``subscriptions cache`` current request reject =
+    let pull () = current
+    refreshCache pull () =! (request, reject)
+    
+    ()
 
 let logFixMsgTestData =
     [

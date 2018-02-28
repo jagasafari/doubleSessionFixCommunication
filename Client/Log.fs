@@ -4,6 +4,8 @@ open System
 open Client.Model
 open Common.Common
 
+let getLog () = log4net.LogManager.GetLogger typeof<Connection>
+
 let isPricingMsg = function 
     | null -> false
     | (msg: string) when msg.Contains("35=W") -> true 
