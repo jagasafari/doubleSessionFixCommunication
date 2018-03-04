@@ -39,7 +39,7 @@ let createAgent log run =
         agent |> Option.iter 
             (fun (a: MailboxProcessor<_>) -> a.Post msg)
     let stop () = post Stop
-    start, post, stop 
+    start, Message >> post, stop 
 
 let agent logInfo logError name handle =
     let log = logAgent logInfo logError name

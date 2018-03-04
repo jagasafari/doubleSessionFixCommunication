@@ -3,7 +3,7 @@ namespace Client.Model
 type Connection = interface end
 
 type SubscriptionCacheChange =
-    | SetCache of Set<string> | Reset | Remove of string
+    | Refresh of Set<string> | Clean | Remove of string
 
 type AppConfig =
     {

@@ -4,41 +4,9 @@ open Xunit
 open Swensen.Unquote
 open QuickFix
 open Configuration
-open CurrencyPairSubscriptions
 open Client.Model
 open Log
 open Common.TestUtil
-open System.Threading
-
-let mutateSubsTestData =
-    [
-    (Reset, "reset")
-    (SetCache (["2";"3"]|>Set.ofList), "set [\"2\"; \"3\"]")
-    (SetCache Set.empty, "set []")
-    (Remove "5", "remove|\"5\"")
-    ] |> cast2TestData
-
-[<Theory; MemberData("mutateSubsTestData")>]
-let ``mutateSubscriptionCache: cases`` msg expected = 
-    let set x = sprintf "%A" x
-    let reset () = "reset"
-    let remove x = sprintf "remove|%A" x
-    mutateSubscriptionCache set reset remove msg =! expected
-
-[<Fact>]
-let ``subscriptionCache: state changes`` () =
-    let get, mutate = subscriptionCache ()
-    let test x = 
-        get () =! (x |> Set.ofList)
-    test []
-    SetCache (["1";"4"]|>Set.ofList) |> mutate
-    test ["1";"4"]
-    Remove "4" |> mutate
-    test ["1"]
-    Reset |> mutate
-    test []
-    
-    
 
 let logFixMsgTestData =
     [
