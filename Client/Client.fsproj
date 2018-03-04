@@ -5,11 +5,16 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Agent.fs" />
+    <Compile Include="Util.fs" />
     <Compile Include="Model.fs" />
+    <Compile Include="CurrencyPairSubscriptions.fs" />
+    <Compile Include="FixServerCommunication.fs" />
     <Compile Include="Configuration.fs" />
     <Compile Include="Log.fs" />
     <Compile Include="Socket.fs" />
     <Compile Include="Tests.fs" />
+    <Compile Include="AgentTests.fs" />
     <Compile Include="Compose.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>

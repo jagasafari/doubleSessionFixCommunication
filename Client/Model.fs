@@ -2,6 +2,9 @@ namespace Client.Model
 
 type Connection = interface end
 
+type SubscriptionCacheChange =
+    | SetCache of Set<string> | Reset | Remove of string
+
 type AppConfig =
     {
     QuickFixConfigFile: string

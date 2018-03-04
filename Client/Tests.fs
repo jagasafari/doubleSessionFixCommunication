@@ -2,40 +2,43 @@ module Tests
 
 open Xunit
 open Swensen.Unquote
+open QuickFix
 open Configuration
-open Log
+open CurrencyPairSubscriptions
 open Client.Model
+open Log
 open Common.TestUtil
 open System.Threading
 
-let timer logError interval callback =
-    let c _ = try callback () with | e -> logError e
-    let tc = TimerCallback c
-    let t = new Timer(tc, null, interval, Timeout.Infinite)
-    fun () -> t.Dispose ()
-
-let startSubscribing callback () =
-    let log = getLog ()
-    timer log.Error 500 callback
-
-let handleSubscriptions refresh = ()
-
-let refreshCache pull =
-    let mutable cache: string list option = None
-    let refresh () = [], []
-    fun () -> refresh ()
-
-let subscriptionTestData =
+let mutateSubsTestData =
     [
-    ([1;4;6;0],[1;4;6;0],[])
-    ] |> cast3TestData
+    (Reset, "reset")
+    (SetCache (["2";"3"]|>Set.ofList), "set [\"2\"; \"3\"]")
+    (SetCache Set.empty, "set []")
+    (Remove "5", "remove|\"5\"")
+    ] |> cast2TestData
 
-[<Theory; MemberData("subscriptionTestData")>]
-let ``subscriptions cache`` current request reject =
-    let pull () = current
-    refreshCache pull () =! (request, reject)
+[<Theory; MemberData("mutateSubsTestData")>]
+let ``mutateSubscriptionCache: cases`` msg expected = 
+    let set x = sprintf "%A" x
+    let reset () = "reset"
+    let remove x = sprintf "remove|%A" x
+    mutateSubscriptionCache set reset remove msg =! expected
+
+[<Fact>]
+let ``subscriptionCache: state changes`` () =
+    let get, mutate = subscriptionCache ()
+    let test x = 
+        get () =! (x |> Set.ofList)
+    test []
+    SetCache (["1";"4"]|>Set.ofList) |> mutate
+    test ["1";"4"]
+    Remove "4" |> mutate
+    test ["1"]
+    Reset |> mutate
+    test []
     
-    ()
+    
 
 let logFixMsgTestData =
     [

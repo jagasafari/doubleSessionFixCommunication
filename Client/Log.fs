@@ -2,9 +2,17 @@ module Log
 
 open System
 open Client.Model
-open Common.Common
+open Util
 
 let getLog () = log4net.LogManager.GetLogger typeof<Connection>
+
+let parseFixMsg (msg: obj) = 
+    let replace (x: string) = x.Replace('\u0001', '|')
+    match msg with
+    | null -> String.Empty
+    | :? string as x -> replace x
+    | :? QuickFix.Message as x -> x.ToString() |> replace
+    | x -> x |> sprintf "%A"
 
 let isPricingMsg = function 
     | null -> false
