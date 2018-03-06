@@ -2,8 +2,8 @@ namespace Client.Model
 
 type Connection = interface end
 
-type SubscriptionCacheChange =
-    | Refresh of Set<string> | Clean | Remove of string
+type SubscriptionCacheChange<'a> =
+    | Refresh | Clean | Remove of 'a | UnsubscribeAll
 
 type AppConfig =
     {

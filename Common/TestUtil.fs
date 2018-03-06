@@ -23,3 +23,8 @@ let cast3TestData data =
     let castTuple (x, y, z) = [|x:>obj; y:>obj; z:>obj|]
     List.toSeq data |> Seq.map castTuple
 
+let cast4TestData data =
+    let castTuple (x, y, z, v) = 
+        [|x:>obj; y:>obj; z:>obj; v:>obj|]
+    List.toSeq data |> Seq.map castTuple
+

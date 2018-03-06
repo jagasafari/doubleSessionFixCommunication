@@ -14,18 +14,20 @@ let logAgent logInfo logError name msg =
     | Starting | Stopping -> m |> logInfo
     | FatalError _ | CaughtError _ -> m |> logError
 
-let run log handle receive =
-    let rec loop () = async {
+let run log initState handle receive =
+    let rec loop state = async {
         try 
             let! msg = receive () 
             match msg with
             | Stop -> log Stopping; ()
-            | Message x -> handle x; return! loop () 
+            | Message x -> 
+                let newState = handle state x 
+                return! loop newState
         with ex ->
             CaughtError ex.Message |> log
-            return! loop () }
+            return! loop state }
     log Starting 
-    loop ()
+    loop initState
 
 let createAgent log run =
     let mutable agent: MailboxProcessor<_> option = None
@@ -41,7 +43,7 @@ let createAgent log run =
     let stop () = post Stop
     start, Message >> post, stop 
 
-let agent logInfo logError name handle =
+let agent logInfo logError name initState handle =
     let log = logAgent logInfo logError name
-    let runAgent = run log handle
+    let runAgent = run log initState handle
     createAgent log runAgent

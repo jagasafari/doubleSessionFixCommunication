@@ -2,27 +2,40 @@ module CurrencyPairSubscriptions
 
 open Client.Model 
 
-let mutateSubscriptionCache 
-    set clean remove = function
-    | Refresh x -> set x 
-    | Clean -> clean () 
-    | Remove x -> remove x
+let refresh pull subscribe unsubscribe state =
+    let latest = pull () |> Set.ofList
+    let toRequest = Set.difference latest state
+    let toReject = Set.difference state latest
+    match toRequest.IsEmpty, toReject.IsEmpty with
+    | true, true -> state
+    | _ ->
+        toRequest |> Set.iter subscribe
+        toReject |> Set.iter unsubscribe
+        latest
 
-let subscriptionCache () =
-    let mutable value: Set<_> = Set.empty
-    let get () = value
-    let set newValue = value <- newValue
-    let reset () = value <- Set.empty
-    let remove x = value <- value.Remove x
-    let mutate = mutateSubscriptionCache set reset remove
-    get, mutate
+let subscriptionHandle refresh unsubscribe state 
+    = function
+    | Refresh -> refresh state
+    | Clean -> Set.empty
+    | Remove x -> state |> Set.remove x
+    | UnsubscribeAll -> 
+        state |> Set.iter unsubscribe
+        Set.empty
 
-let subscription agent =
-    let getCache, mutateCache = subscriptionCache ()
+let subscription agent isLogon pull subscribe unsubscribe =
+    let refresh' = refresh pull subscribe unsubscribe
+    let handle = subscriptionHandle refresh' unsubscribe
     let start, post, stop = 
-        agent "Subscription" mutateCache 
-    let refresh = Refresh >> post
+        agent "Sunscription" Set.empty handle
+    let refreshSubscription () = 
+        if isLogon () then post Refresh
     let clean () = post Clean
-    let remove = Remove >> post
-    let stopCache () = clean (); stop ()
-    start, stopCache, getCache, refresh, clean, remove
+    let remove x = post (Remove x)
+    let unsubscribeAll () = post UnsubscribeAll
+
+    start, 
+    stop, 
+    refreshSubscription, 
+    clean, 
+    remove, 
+    unsubscribeAll

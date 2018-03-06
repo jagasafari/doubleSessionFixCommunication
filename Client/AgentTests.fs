@@ -8,7 +8,8 @@ open Common.TestUtil
 [<Fact>]
 let ``createAgent:`` () =
     let add, get = mock ()
-    let start, post, stop = agent add add "abc" add
+    let handle _ m = add m
+    let start, post, stop = agent add add "abc" () handle
     start ()
     post ("ble")
     stop ()
