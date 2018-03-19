@@ -1,11 +1,11 @@
 module Tests
 
 open Xunit
+open System
 open Swensen.Unquote
-open QuickFix
 open Configuration
 open Client.Model
-open Log
+open SocketLog
 open Common.TestUtil
 
 let logFixMsgTestData =
@@ -27,7 +27,14 @@ let ``logReact: cases`` msg expectedInfo expectedDebug =
 
 [<Fact>]
 let ``getConfig: `` () =
-    let cfg: AppConfig = appConfig.Value
-    cfg.QuickFixConfigFile =! "fix.cfg"
-    cfg.HeartbeatFrequency =! 60
-    cfg.User =! "user"
+    let expected =
+        {
+        QuickFixConfigFile = "fix.cfg"
+        HeartbeatFrequency = 60
+        User = "user"
+        Password = "password"
+        RatePushingDeadline = TimeSpan.FromMilliseconds 50.
+        PublishRatesHost = "localhost"
+        PublishRatesPort = 8456
+        }
+    appConfig.Value =! expected

@@ -10,12 +10,16 @@
     <Compile Include="Model.fs" />
     <Compile Include="CurrencyPairSubscriptions.fs" />
     <Compile Include="FixServerCommunication.fs" />
+    <Compile Include="PublishRatesContract.fs" />
+    <Compile Include="PublishRates.fs" />
+    <Compile Include="PublishRatesTests.fs" />
     <Compile Include="Configuration.fs" />
-    <Compile Include="Log.fs" />
+    <Compile Include="SocketLog.fs" />
     <Compile Include="Socket.fs" />
     <Compile Include="Tests.fs" />
     <Compile Include="CurrencyPairSubscriptionsTests.fs" />
     <Compile Include="AgentTests.fs" />
+    <Compile Include="ComposePublishSimulator.fs" />
     <Compile Include="Compose.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
@@ -34,6 +38,9 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="FSharp.Control.Reactive" Version="4.0.0" />
+    <PackageReference Include="FSharp.Core" Version="4.3.2" />
+    <PackageReference Include="fspickler" Version="5.2" />
     <PackageReference Include="grpc" Version="1.9.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="2.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.0.0" />

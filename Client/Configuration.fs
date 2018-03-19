@@ -13,7 +13,13 @@ let appConfig =
 
         { 
         QuickFixConfigFile = builder.["QuickFixConfigFile"] 
-        HeartbeatFrequency = Int32.Parse builder.["HeartbeatFrequency"]
+        HeartbeatFrequency = builder.["HeartbeatFrequency"] |> int
         User = builder.["User"]
         Password = builder.["Password"]
+        RatePushingDeadline = 
+            builder.["RatePushingDeadline"] 
+            |> float 
+            |> TimeSpan.FromMilliseconds
+        PublishRatesHost = builder.["PublishRatesHost"]
+        PublishRatesPort = builder.["PublishRatesPort"] |> int
         }

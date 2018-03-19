@@ -3,13 +3,16 @@ module Compose
 open System
 open Client.Model
 
+let getLog () = 
+    log4net.LogManager.GetLogger typeof<Connection>
+
 let getApi (config: AppConfig) (log: log4net.ILog) =
-    let log: log4net.ILog = Log.getLog ()
+    let log: log4net.ILog = getLog ()
     let (publishApp, triggerApp) =
         let evt = Event<_>() in (evt.Publish, evt.Trigger)
     let (publishLog, triggerLog) =
         let evt = Event<_>() in (evt.Publish, evt.Trigger)
-    publishApp.Add (Log.logAppMsg log.Info)
+    publishApp.Add (SocketLog.logAppMsg log.Info)
     let decryptPwd = Util.decrypt config.Password
     let fillLogonMsg = 
         FixServerCommunication.fillLogonMsg decryptPwd
@@ -17,7 +20,8 @@ let getApi (config: AppConfig) (log: log4net.ILog) =
     |> fillLogonMsg
     |> FixServerCommunication.appHandle
     |> publishApp.Add
-    publishLog.Add (Log.logQuickFixMsg log.Debug log.Info)
+    SocketLog.logQuickFixMsg log.Debug log.Info
+    |> publishLog.Add 
     let startSocket, stopSocket =
         Socket.createSocket 
             config.QuickFixConfigFile triggerApp triggerLog

@@ -10,11 +10,14 @@ open Common.Common
 
 let app react =
     { new IApplication with
-        member __.OnCreate(sessionId) = OnCreate sessionId |> react
+        member __.OnCreate(sessionId) = 
+            OnCreate sessionId |> react
         member __.FromAdmin(msg, _) = FromAdmin msg |> react
         member __.ToAdmin(msg, _) = ToAdmin msg |> react
-        member __.OnLogon(sessionId) = OnLogon sessionId |> react    
-        member __.OnLogout(sessionId) = OnLogout sessionId |> react    
+        member __.OnLogon(sessionId) = 
+            OnLogon sessionId |> react    
+        member __.OnLogout(sessionId) = 
+            OnLogout sessionId |> react    
         member __.FromApp(msg, _) = FromApp msg |> react
         member __.ToApp(msg, _) = ToApp msg |> react
     }
@@ -26,8 +29,10 @@ let logFactory react =
                 member __.Clear() = ()
                 member __.Dispose() = ()
                 member __.OnEvent(e) = OnEvent e |> react 
-                member __.OnOutgoing(msg) = OnOutgoing msg |> react
-                member __.OnIncoming(msg) = OnIncoming msg |> react
+                member __.OnOutgoing(msg) = 
+                    OnOutgoing msg |> react
+                member __.OnIncoming(msg) = 
+                    OnIncoming msg |> react
             } 
     }
 

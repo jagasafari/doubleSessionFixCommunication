@@ -1,5 +1,24 @@
 namespace Client.Model
 
+open System
+open Grpc.Core
+
+type ChannelMessage = 
+    | CreateChannel 
+    | ShutDown 
+    | GetState
+
+type ChannelResult = 
+    | CanNotRetrieveState
+    | State of ChannelState
+    | ShutDownCompleted
+    | CanBeCreatedOnlyOnce
+    | ShutDownError of string List
+    | ShutDownTimeout
+    | NothingToShutDown
+    | InvokerNotCreated
+    | CallInvoker of DefaultCallInvoker
+
 type Connection = interface end
 
 type SubscriptionCacheChange<'a> =
@@ -11,6 +30,9 @@ type AppConfig =
     HeartbeatFrequency: int
     User: string
     Password: string
+    RatePushingDeadline: TimeSpan
+    PublishRatesHost: string
+    PublishRatesPort: int
     }
 
 type QuicFixLoggingMsg = 
