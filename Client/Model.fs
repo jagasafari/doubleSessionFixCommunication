@@ -3,6 +3,8 @@ namespace Client.Model
 open System
 open Grpc.Core
 
+type PushRateResult = | RatePushed | PushingErrors of string list
+
 type ChannelMessage = 
     | CreateChannel 
     | ShutDown 

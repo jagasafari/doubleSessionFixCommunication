@@ -106,14 +106,3 @@ let ``grpc channel`` cmd expected =
                             x |> isNull =! false
                         | _ -> failwith "fails")
     handler ShutDown |> ignore
-
-[<Fact>]
-let ``timePeriod observable`` () =
-    writeType (Observable.subscribe.GetType())
-    let add, get = mock ()
-    let period = TimeSpan.FromMilliseconds 1.
-    let observable =
-        Observable.timerPeriod DateTimeOffset.Now period
-    use subs =Observable.subscribe (fun _ -> add 1) observable
-    Threading.Thread.Sleep 100
-    get () |> List.length > 8 =! true

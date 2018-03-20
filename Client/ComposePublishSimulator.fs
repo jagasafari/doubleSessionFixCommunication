@@ -23,17 +23,15 @@ let getApi (config: AppConfig) (log: log4net.ILog) =
         channel 
             timeout config.PublishRatesHost config.PublishRatesPort
     let logChannel = logChannel log.Info log.Warn log.Error
-    let startChannel () = 
-        match channelHandler CreateChannel with
-        | CallInvoker invoker -> invoker
-        | x -> 
-            logChannel x 
-            "FatalError|Message=PublishRatesChannelNotCreated"
-            |> failwith
+    let startChannel' = startChannel logChannel channelHandler
+    let logPush = logPushRate log.Info log.Error
+    let push' = push logPush config.RatePushingDeadline
+    let startSimulate, stopSimulate = simulatePush ()
     let start () = 
-        let invoker = startChannel ()
-        let push = 
-            getRatesStreaming invoker config.RatePushingDeadline
-        ()
-    let stop () = channelHandler ShutDown |> logChannel
+        let invoker = startChannel' ()
+        let pushRate _ = push' invoker mockRate
+        startSimulate pushRate
+    let stop () = 
+        stopSimulate ()
+        channelHandler ShutDown |> logChannel
     start, stop

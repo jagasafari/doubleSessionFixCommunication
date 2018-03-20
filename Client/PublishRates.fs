@@ -5,6 +5,7 @@ open System.Collections.Generic
 open Grpc.Core
 open Client.Model
 open PublishRatesContract
+open FSharp.Control.Reactive
 
 let logChannel info warn error msg =
     let logMsg = sprintf "GrpcChannel|Message=%A" msg
@@ -19,6 +20,11 @@ let logChannel info warn error msg =
     | InvokerNotCreated
     | CallInvoker _ -> ()
 
+let logPushRate info error rate msg =
+    let logMsg = sprintf "GrpcChannel|Message=%A|Rate=%A" msg rate
+    match msg with
+    | RatePushed -> info logMsg
+    | PushingErrors _ -> error logMsg
 
 let deadline = (+) DateTime.UtcNow
 
@@ -31,8 +37,6 @@ let tryCallAsync f error =
         |> Seq.iter (fun e -> errs.Add e.Message)
         errs |> Seq.toList |> error
     | e -> error [e.Message]
-
-type PushRateResult = | RatePushed | PushingErrors of string list
 
 let getRatesStreaming (invoker: DefaultCallInvoker) timeout =
     let callOptions = 
@@ -81,3 +85,29 @@ let channel timeout host port =
     | CreateChannel -> create ()
     | ShutDown -> shutDown ()
     | GetState -> getState ()
+
+let startChannel logChannel channelHandler () = 
+    match channelHandler CreateChannel with
+    | CallInvoker invoker -> invoker
+    | x -> 
+        logChannel x 
+        "FatalError|Message=PublishRatesChannelNotCreated"
+        |> failwith
+
+let push logPush ratePushingDeadline invoker rate = 
+    rate
+    |> getRatesStreaming invoker ratePushingDeadline
+    |> logPush rate
+
+let simulatePush () = 
+    let mutable subs: IDisposable option = None
+    let start pushRate =
+        subs <-
+            TimeSpan.FromMilliseconds 1.
+            |> Observable.timerPeriod DateTimeOffset.Now
+            |> Observable.subscribe pushRate
+            |> Some
+    let stop () = 
+        let dispose (x: IDisposable) = x.Dispose()
+        subs |> Option.iter dispose 
+    start, stop 
