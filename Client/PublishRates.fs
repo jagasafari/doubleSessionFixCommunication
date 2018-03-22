@@ -7,6 +7,8 @@ open Client.Model
 open PublishRatesContract
 open FSharp.Control.Reactive
 
+let dispose (x: IDisposable) = x.Dispose()
+
 let logChannel info warn error msg =
     let logMsg = sprintf "GrpcChannel|Message=%A" msg
     match msg with
@@ -26,8 +28,6 @@ let logPushRate info error rate msg =
     | RatePushed -> info logMsg
     | PushingErrors _ -> error logMsg
 
-let deadline = (+) DateTime.UtcNow
-
 let tryCallAsync f error =
     try f ()
     with
@@ -38,21 +38,6 @@ let tryCallAsync f error =
         errs |> Seq.toList |> error
     | e -> error [e.Message]
 
-let getRatesStreaming (invoker: DefaultCallInvoker) timeout =
-    let callOptions = 
-        timeout |> deadline |> CallOptions().WithDeadline
-    let call =
-        invoker.AsyncClientStreamingCall(
-                    ratesStreamingContract, null, callOptions)
-    let pushRate rate () =
-        call.RequestStream.WriteAsync rate 
-        |> Async.AwaitTask
-        |> Async.RunSynchronously
-        RatePushed
-    let push rate = 
-        tryCallAsync (pushRate rate) PushingErrors
-    push
-
 let channel timeout host port =
     let mutable channel: Channel option = None
     let create () = 
@@ -61,7 +46,8 @@ let channel timeout host port =
             let credentials = 
                 ChannelCredentials.Insecure
             let c = Channel(host, port, credentials)
-            c.ConnectAsync (Nullable(deadline timeout))
+            c.ConnectAsync 
+                (Nullable(DateTime.UtcNow + timeout))
             |> Async.AwaitTask
             |> ignore
             channel <- Some c
@@ -86,7 +72,7 @@ let channel timeout host port =
     | ShutDown -> shutDown ()
     | GetState -> getState ()
 
-let startChannel logChannel channelHandler () = 
+let startChannel logChannel channelHandler = 
     match channelHandler CreateChannel with
     | CallInvoker invoker -> invoker
     | x -> 
@@ -94,20 +80,30 @@ let startChannel logChannel channelHandler () =
         "FatalError|Message=PublishRatesChannelNotCreated"
         |> failwith
 
-let push logPush ratePushingDeadline invoker rate = 
-    rate
-    |> getRatesStreaming invoker ratePushingDeadline
-    |> logPush rate
+let getRatesStreamingCall (invoker: DefaultCallInvoker) =
+    invoker.AsyncClientStreamingCall(
+                ratesStreamingContract, null, CallOptions ())
 
-let simulatePush () = 
+let writeRate (call: AsyncClientStreamingCall<_,_>) rate = 
+    call.RequestStream.WriteAsync rate
+    |> Async.AwaitTask
+    |> Async.RunSynchronously
+
+let getRatesStreaming push rate =
+    tryCallAsync (fun () -> push rate; RatePushed) PushingErrors
+
+let pushRate logPush invoker rate = 
+    let push = invoker |> getRatesStreamingCall |> writeRate
+    getRatesStreaming push rate |> logPush rate
+
+let simulatePush push mockRate = 
     let mutable subs: IDisposable option = None
-    let start pushRate =
+    let start invoker =
+        let push' _ = push invoker mockRate
         subs <-
             TimeSpan.FromMilliseconds 1.
             |> Observable.timerPeriod DateTimeOffset.Now
-            |> Observable.subscribe pushRate
+            |> Observable.subscribe push'
             |> Some
-    let stop () = 
-        let dispose (x: IDisposable) = x.Dispose()
-        subs |> Option.iter dispose 
+    let stop () = subs |> Option.iter dispose 
     start, stop 

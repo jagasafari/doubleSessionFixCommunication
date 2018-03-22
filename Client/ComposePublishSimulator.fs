@@ -17,20 +17,18 @@ let getLog () =
     log4net.LogManager.GetLogger typeof<Connection>
 
 let getApi (config: AppConfig) (log: log4net.ILog) =
-    let log: log4net.ILog = getLog ()
     let timeout = TimeSpan.FromSeconds 10.
     let channelHandler = 
         channel 
             timeout config.PublishRatesHost config.PublishRatesPort
     let logChannel = logChannel log.Info log.Warn log.Error
-    let startChannel' = startChannel logChannel channelHandler
+    let startStreaming () = startChannel logChannel channelHandler
     let logPush = logPushRate log.Info log.Error
-    let push' = push logPush config.RatePushingDeadline
-    let startSimulate, stopSimulate = simulatePush ()
+    let startSimulate, stopSimulate = 
+        simulatePush (pushRate logPush) mockRate
     let start () = 
-        let invoker = startChannel' ()
-        let pushRate _ = push' invoker mockRate
-        startSimulate pushRate
+        let invoker = startStreaming ()
+        startSimulate invoker
     let stop () = 
         stopSimulate ()
         channelHandler ShutDown |> logChannel

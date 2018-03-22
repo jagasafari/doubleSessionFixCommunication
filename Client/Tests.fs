@@ -36,5 +36,6 @@ let ``getConfig: `` () =
         RatePushingDeadline = TimeSpan.FromMilliseconds 50.
         PublishRatesHost = "localhost"
         PublishRatesPort = 8456
+        PublishRatesSimulatorOn = true
         }
     appConfig.Value =! expected

@@ -11,6 +11,8 @@ let appConfig =
                 .AddJsonFile("appsettings.json", optional = true)
                 .Build()
 
+        let _,publishRatesSimulatorOn = 
+            builder.["PublishRatesSimulatorOn"] |> bool.TryParse
         { 
         QuickFixConfigFile = builder.["QuickFixConfigFile"] 
         HeartbeatFrequency = builder.["HeartbeatFrequency"] |> int
@@ -22,4 +24,5 @@ let appConfig =
             |> TimeSpan.FromMilliseconds
         PublishRatesHost = builder.["PublishRatesHost"]
         PublishRatesPort = builder.["PublishRatesPort"] |> int
+        PublishRatesSimulatorOn = publishRatesSimulatorOn 
         }

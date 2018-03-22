@@ -15,7 +15,7 @@ type ChannelResult =
     | State of ChannelState
     | ShutDownCompleted
     | CanBeCreatedOnlyOnce
-    | ShutDownError of string List
+    | ShutDownError of string list
     | ShutDownTimeout
     | NothingToShutDown
     | InvokerNotCreated
@@ -35,6 +35,7 @@ type AppConfig =
     RatePushingDeadline: TimeSpan
     PublishRatesHost: string
     PublishRatesPort: int
+    PublishRatesSimulatorOn: bool
     }
 
 type QuicFixLoggingMsg = 

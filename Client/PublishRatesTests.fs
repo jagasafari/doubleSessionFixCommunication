@@ -12,7 +12,7 @@ open Grpc.Core
 open Common.TypeLookUp
 open MBrace.FsPickler
 
-let getChannelHandler () =
+let channelHandler () =
     let timeout = TimeSpan.FromSeconds 5.
     channel timeout "abc" 345
 
@@ -32,16 +32,20 @@ let ``enocde, decode rate`` () =
     back =! mockRate
     createMarshaller () |> ignore
 
+let createRatesStreamingCall (invoker: DefaultCallInvoker) = 
+    invoker.AsyncClientStreamingCall(
+        ratesStreamingContract, null, CallOptions())
+
 [<Fact>]
 let ``streaming call`` () =
-    let handler = getChannelHandler ()
+    let handler = channelHandler ()
     let invoker = 
         match handler CreateChannel with 
         | CallInvoker x ->x | _ -> failwith "fails"
+    let call: AsyncClientStreamingCall<_,_> = 
+        createRatesStreamingCall invoker
     let timeout = TimeSpan.FromMilliseconds 50.
-    let pushRate = getRatesStreaming invoker timeout
-    pushRate mockRate =! PushingErrors ["Status(StatusCode=DeadlineExceeded, Detail=\"Deadline Exceeded\")"]
-    pushRate mockRate =! PushingErrors ["Status(StatusCode=DeadlineExceeded, Detail=\"Deadline Exceeded\")"]
+    handler ShutDown
     
 type ArroundMocking = 
     | Simple of ChannelResult 
@@ -94,7 +98,7 @@ let channelCmdDataTests =
 
 [<Theory; MemberData("channelCmdDataTests")>]
 let ``grpc channel`` cmd expected =
-    let handler = getChannelHandler ()
+    let handler = channelHandler ()
     Seq.zip cmd expected
     |> Seq.iter (fun (x, y) -> 
                     let result = handler x
@@ -106,3 +110,7 @@ let ``grpc channel`` cmd expected =
                             x |> isNull =! false
                         | _ -> failwith "fails")
     handler ShutDown |> ignore
+
+[<Fact>]
+let ``push rate`` () =
+    writeType typeof<StatusCode>
