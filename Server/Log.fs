@@ -1,7 +1,21 @@
 module Log
 
+open System
 open Server.Model
 open Common.Common
+open Microsoft.FSharp.Reflection
+
+let getUnionCaseName<'T> case =
+    (FSharpValue.GetUnionFields(case, typeof<'T>) 
+    |> fst).Name
+
+let parseFixMsg (msg: obj) = 
+    let replace (x: string) = x.Replace('\u0001', '|')
+    match msg with
+    | null -> String.Empty
+    | :? string as x -> replace x
+    | :? QuickFix.Message as x -> x.ToString() |> replace
+    | x -> x |> sprintf "%A"
 
 let logQuickFixMsg info = function
     | OnEvent x -> x |> sprintf "Event|event=%s" |> info

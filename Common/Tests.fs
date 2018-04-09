@@ -9,13 +9,6 @@ open System.Reflection
 open Common.TypeLookUp
 open Common.Common
     
-type Letter = | A | B
-
-[<Fact>]
-let ``name of union case`` () =
-    let example = B
-    getUnionCaseName<Letter> example =! "B"
-
 [<Fact>]
 [<Trait("Category", "Integration")>]
 let ``sig`` () = writeType typeof<LogManager>
