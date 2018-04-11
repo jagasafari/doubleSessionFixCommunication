@@ -1,0 +1,24 @@
+#create container registry
+az acr create --resource-group opendevhack01a --name team3cr --sku Basic
+#see azure groups
+az group list
+#stop service
+sudo service mongodb stop
+#monitor active processes
+top
+#list docker processes
+ps aux | grep docker
+#stop vm
+sudo shutdown -h now
+#exmple project github repo
+git clone https://github.com/Azure-Samples/docker-flask-postgres.git
+# check if the image is created
+sudo docker images
+# logon to docker registry
+sudo docker login --username team3cr --password myI7m7mIozJSPJQU8+Ug7=8FxDcAorxq team3cr.azurecr.io
+# tag meaning rename image to azure repository like name and label it with version - v1
+sudo docker tag docker-flask-sample team3cr.azurecr.io/docker-flask-sample:v1
+# push docker image to the registry. docker must be logon to the docker registry
+sudo docker push team3cr.azurecr.io/docker-flask-sample:v1
+# locally run docker image. Env variables specifies connection for postgress database. Default postgres database created when server was created from azure ui is named postgres. Remaining database configuration can be found in azure tododb333 postgress database overview tab.
+sudo docker run -it --env DBPASS=team3123. --env DBHOST=tododb333.postgres.database.azure.com --env DBUSER=tododb@tododb333 --env DBNAME=postgres -p 5000:5000 docker-flask-sample
